@@ -41,6 +41,9 @@ public class Users implements Serializable {
 
     @JsonBackReference
     @ManyToOne
+    private String qrCode;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name = "roleId", insertable = false, updatable = false)
     private Roles role;
 
