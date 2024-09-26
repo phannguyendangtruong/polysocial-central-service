@@ -3,6 +3,7 @@ package com.polysocial.rest.controller.group;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import org.modelmapper.internal.util.Members;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,11 @@ import com.polysocial.consts.CentralAPI;
 import com.polysocial.dto.GroupDTO;
 
 import com.polysocial.dto.MemberDTO;
+import com.polysocial.dto.MemberGroupDTO;
 import com.polysocial.dto.PageObject;
 import com.polysocial.dto.StudentDTO;
+import com.polysocial.dto.UserDTO;
+import com.polysocial.entity.Groups;
 import com.polysocial.entity.Users;
 import com.polysocial.service.impl.group.GroupServiceImpl;
 
@@ -84,6 +88,7 @@ public class GroupController {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST.toString(), HttpStatus.BAD_REQUEST);
         }
+
     }
 
     @DeleteMapping(value = CentralAPI.API_DELETE_GROUP, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -109,8 +114,8 @@ public class GroupController {
     @PostMapping(value = CentralAPI.API_CREATE_GROUP, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createGroup(@RequestBody GroupDTO group) {
         try {
-            GroupDTO response = groupService.createGroup(group);
-            return new ResponseEntity(response, HttpStatus.OK);
+            GroupDTO groups = groupService.createGroup(group);
+            return new ResponseEntity(groups, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST.toString(), HttpStatus.BAD_REQUEST);
         }
@@ -129,7 +134,7 @@ public class GroupController {
     @GetMapping(value = CentralAPI.API_GET_ONE_STUDENT, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getOneStudent(@RequestParam("email") String email, @RequestParam("userId") Long groupId) {
         try {
-            Users response = groupService.getOneMemberInGroup(email, groupId);
+            UserDTO response = groupService.getOneMemberInGroup(email, groupId);
             return new ResponseEntity(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST.toString(), HttpStatus.BAD_REQUEST);
@@ -138,12 +143,8 @@ public class GroupController {
 
     @GetMapping(value = CentralAPI.API_GET_MEMBER_GROUP, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getMemberGroup(@RequestParam("groupId") Long groupId) {
-        try {
-            List<Object> response = groupService.getMemberInGroup(groupId);
-            return new ResponseEntity(response, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity(HttpStatus.BAD_REQUEST.toString(), HttpStatus.BAD_REQUEST);
-        }
+        List<Object> response = groupService.getMemberInGroup(groupId);
+        return new ResponseEntity(response, HttpStatus.OK);
     }
 
     @PostMapping(value = CentralAPI.API_CREATE_GROUP_EXCEL, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -173,14 +174,14 @@ public class GroupController {
             GroupDTO response = groupService.updateGroup(group);
             return new ResponseEntity(response, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity(HttpStatus.BAD_REQUEST.toString(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(e, HttpStatus.FAILED_DEPENDENCY);
         }
     }
 
     @GetMapping(value = CentralAPI.API_GET_ALL_GROUP_BY_STUDENT, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getAllGroupStudent(@RequestParam("userId") Long userId) {
         try {
-            List<MemberDTO> response = groupService.getAllGroupByStudent(userId);
+            List<MemberGroupDTO> response = groupService.getAllGroupByStudent(userId);
             return new ResponseEntity(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST.toString(), HttpStatus.BAD_REQUEST);
@@ -190,7 +191,7 @@ public class GroupController {
     @GetMapping(value = CentralAPI.API_GET_ALL_GROUP_BY_TEACHER, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getAllGroupTeacher(@RequestParam("userId") Long userId) {
         try {
-            List<Object> response = groupService.getAllGroupByTeacher(userId);
+            List<MemberGroupDTO> response = groupService.getAllGroupByTeacher(userId);
             return new ResponseEntity(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST.toString(), HttpStatus.BAD_REQUEST);
